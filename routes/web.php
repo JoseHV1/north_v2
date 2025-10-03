@@ -97,6 +97,7 @@ Route::middleware(['auth'])->group(function () {
 
             //Rates
             Route::resource('/rates', RatesController::class);
+            Route::put('change/status/rates/{id}', [RatesController::class, 'changeStatus']);
 
             //Shpaes Payment
             Route::resource('/shapes_payment', ShapesPaymentController::class);

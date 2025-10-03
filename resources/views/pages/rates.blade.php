@@ -9,13 +9,13 @@
 				</div>
 
 				<div class="col-6">
-					{{-- <div class="d-flex justify-content-end"> --}}
-						{{-- <button type="button" class="btn btn-primary m-1" data-toggle="modal" data-target="#modalAgg" data-toggle="tooltip" title="Agregar">
+					<div class="d-flex justify-content-end">
+						<button type="button" class="btn btn-primary m-1" data-toggle="modal" data-target="#modalAgg" data-toggle="tooltip" title="Agregar">
 							<span><i class="ti ti-plus"></i></span>
-						</button> --}}
+						</button>
 
 						<!-- ModalAgg -->
-						{{-- <div class="modal fade" id="modalAgg" tabindex="-1" role="dialog" aria-labelledby="modelTitleId" aria-hidden="true">
+						<div class="modal fade" id="modalAgg" tabindex="-1" role="dialog" aria-labelledby="modelTitleId" aria-hidden="true">
 							<div class="modal-dialog" role="document">
 								<div class="modal-content">
 									<div class="modal-header">
@@ -30,12 +30,23 @@
 												<input name="name" type="text" class="form-control" id="inputName" required minlenght="1" maxlenght="50">
 											</div>
 
-											<div class="form-group mb-4">
+											<div class="form-group mb-3">
 												<label for="inputValue" class="form-label">Porcentaje</label>
 												<input name="value" type="number" class="form-control" id="inputValue" required min="1" max="100">
 											</div>
+											<div class="form-check mb-3">
+												<input class="form-check-input" type="radio" name="tax" value="0" id="applyRates">
+												<label class="form-check-label" for="applyRates">
+													Aplicar subtotal
+												</label>
+											</div>
+											<div class="form-check mb-4">
+												<input class="form-check-input" type="radio" name="tax" value="1" id="applyRates2">
+												<label class="form-check-label" for="applyRates2">
+													Aplicar a base imponible
+												</label>
+											</div>
 										</div>
-
 										<div class="modal-footer">
 											<button type="button" class="btn btn-dark" data-dismiss="modal">Cerrar</button>
 											<button type="submit" class="btn btn-primary">Agregar</button>
@@ -43,8 +54,8 @@
 									</form>
 								</div>
 							</div>
-						</div> --}}
-					{{-- </div> --}}
+						</div>
+					</div>
 				</div>
 			</div>
 
@@ -54,6 +65,7 @@
 						<tr>
 							<th>Tasa</th>
 							<th>Porcentaje</th>
+							<th>Impuesto</th>
 							<th></th>
 						</tr>
 					</thead>
@@ -63,6 +75,7 @@
                                 <tr>
                                     <td scope="row">{{ $rate->name }}</td>
                                     <td>{{ $rate->value }}</td>
+                                    <td>{{ $rate->tax }}</td>
                                     <td class="d-flex justify-content-center">
 
                                         <!-- ModalEdit -->
@@ -92,11 +105,50 @@
                                                                 <input name="value" type="number" class="form-control" id="inputEditValue" required min="0" max="100" value="{{ $rate ->value }}">
 																<p class="text-danger small d-none" id="messageEditValue">El valor de la tasa debe contener solo numeros, el valor de la tasa debe ser 1 y 100</p>
                                                             </div>
+															<div class="form-check mb-3">
+																<input class="form-check-input" type="radio" name="tax" value="0" id="applyRates{{$rate->id}}" {{$rate->tax == "Aplicar subtotal" ? "checked" : ""}} >
+																<label class="form-check-label" for="applyRates{{$rate->id}}">
+																	Aplicar subtotal
+																</label>
+															</div>
+															<div class="form-check mb-4">
+																<input class="form-check-input" type="radio" name="tax" value="1" id="applyRates{{$rate->id}}2" {{$rate->tax == "Aplicar a base imponible" ? "checked" : ""}}>
+																<label class="form-check-label" for="applyRates{{$rate->id}}2">
+																	Aplicar a base imponible
+																</label>
+															</div>
                                                         </div>
 
                                                         <div class="modal-footer">
                                                             <button type="button" class="btn btn-dark" data-dismiss="modal">Cerrar</button>
                                                             <button type="submit" class="btn btn-warning">Editar</button>
+                                                        </div>
+                                                    </form>
+                                                </div>
+                                            </div>
+                                        </div>
+
+										<!-- ModalChangeStatus -->
+                                        <button type="button" class="btn m-1 {{ $rate->status == 1 ? 'btn-danger' : 'btn-success' }}" data-toggle="modal"data-target="#modalChangeStatus{{ $rate->id }}" data-toggle="tooltip" title="{{ $rate->status == 1 ? 'Inhabilitar' :'Habilitar' }}">
+                                            <span><i class="ti {{ $rate->status == 1 ? 'ti-eye-off' : 'ti-eye' }}"></i></span>
+                                        </button>
+                                        <div class="modal fade" id="modalChangeStatus{{ $rate->id }}" tabindex="-1" role="dialog" aria-labelledby="modelTitleId"aria-hidden="true">
+                                            <div class="modal-dialog" role="document">
+                                                <div class="modal-content">
+                                                    <div class="modal-header">
+                                                        <h5 class="modal-title">{{ $rate->status == 1 ? 'Inhabilitar' : 'Habilitar' }}  tasa</h5>
+                                                    </div>
+                                                    <form method="POST" action="{{  url("change/status/rates/$rate->id")  }}" autocomplete="off">
+                                                        {{ csrf_field() }}
+                                                        <input type="hidden" name="_method" value="PUT">
+                                                        <div class="modal-body">
+                                                            <h6>¿Esta seguro de {{ $rate->status == 1 ? 'Inhabilitar' : 'Habilitar' }} la tasa <span class="font-weight-bold">{{ $rate->name }}<span>?</h6>
+                                                        </div>
+                                                        <div class="modal-footer">
+                                                            <button type="button" class="btn btn-dark" data-dismiss="modal">Cerrar</button>
+                                                            <button type="submit" class="btn m-1 {{ $rate->status == 1 ? 'btn-danger' : 'btn-success' }}">
+                                                                {{ $rate->status == 1 ? 'Inhabilitar' : 'Habilitar' }}
+                                                            </button>
                                                         </div>
                                                     </form>
                                                 </div>
@@ -116,8 +168,8 @@
                                                             <h5 class="modal-title">Eliminar Tasa</h5>
                                                         </div>
                                                         <form method="POST" action="{{ url("rates/$rate->id") }}" autocomplete="off">
-                                                            {{ csrf_field() }}
-                                                            <input type="hidden" name="_method" value="DELETE">
+															@csrf
+															@method('DELETE')
 
                                                             <div class="modal-body">
                                                                 <h6>¿Esta seguro de eliminar la tasa {{ $rate->name }}?</h6>

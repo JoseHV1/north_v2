@@ -79,6 +79,11 @@ class LogsController extends Controller
                 // $this->formatData($module, $request->all());
                 break;
 
+            case 'DELETE':
+                $this->action = 'Eliminacion de registro';
+                // $this->formatData($module, $request->all());
+                break;
+
             default:
                 dd('Route not found');
                 break;

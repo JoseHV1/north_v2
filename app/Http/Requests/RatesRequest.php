@@ -19,6 +19,7 @@ class RatesRequest extends FormRequest
         return [
             'name' => ['required', 'string', 'min:1', 'max:50', $id ? Rule::unique('rates')->where('status', 1)->ignore($id) : Rule::unique('rates')->where('status', 1)],
             'value' => 'required|numeric|min:0|max:100',
+            'tax' => 'required|in:0,1'
         ];
     }
 
@@ -34,6 +35,8 @@ class RatesRequest extends FormRequest
             'value.numeric'=> 'El valor de la tasa debe contener solo numeros',
             'value.min'=> 'El valor de la tasa debe ser mayor o igual a 0',
             'value.max'=> 'El valor de la tasa debe ser menor o igual a 100',
+            'tax.required'=> 'Debe seleccionar un impuesto para la tasa',
+            'tax.in'=> 'El impuesto seleccionada no es valido'
         ];
     }
 }

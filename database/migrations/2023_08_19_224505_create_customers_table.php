@@ -22,6 +22,7 @@ class CreateCustomersTable extends Migration
             $table->string('phone')->nullable();
             $table->string('phone_secondary')->nullable();
             $table->integer('status')->default(1);
+            $table->boolean('retention_agent')->nullable()->default(false);
             $table->timestamps();
         });
     }

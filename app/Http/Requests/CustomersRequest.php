@@ -21,11 +21,12 @@ class CustomersRequest extends FormRequest
 
         return [
             'type_document' => 'required|exists:document_types,id',
-            'document' => ['required', 'numeric', 'min:', /*'max:10',*/ $id ? Rule::unique('customers')->where('id_document_type', $this->type_document)->ignore($id) : Rule::unique('customers')->where('id_document_type', $this->type_document)],
+            'document' => ['required', 'numeric', 'min:1', /*'max:10',*/ $id ? Rule::unique('customers')->where('id_document_type', $this->type_document)->ignore($id) : Rule::unique('customers')->where('id_document_type', $this->type_document)],
             'business_name' => ['required', 'min:1', /*'max:50',*/ $id ? Rule::unique('customers')->ignore($id) : Rule::unique('customers')],
             'email' => ['nullable', 'email', 'min:10', $id ? Rule::unique('customers')->ignore($id) : Rule::unique('customers')],
             'phone' => ['nullable', 'numeric', 'min:10', /*'max:12',*/ $id ? Rule::unique('customers')->ignore($id) : Rule::unique('customers')],
             'phone_secondary' => ['nullable', 'numeric', 'min:10', /*'max:12',*/ $id ? Rule::unique('customers')->ignore($id) : Rule::unique('customers')],
+            'retention_agent' => 'sometimes|boolean'
         ];
     }
 
@@ -53,6 +54,8 @@ class CustomersRequest extends FormRequest
             'phone_secondary.unique' => 'El telefono secundario ingresado ya esta registrado',
             'phone_secondary.min' => 'El telefono secundario debe tener minimo 10 caracteres de longitud',
             'phone_secondary.max' => 'El telefono secundario debe tener maximo 12 caracteres de longitud',
+            'retention_agent.boolean' => 'El valor del agente de retencion es incorrecto',
+            'retention_agent.sometimes' => 'El valor del agente de retencion es incorrecto'
         ];
     }
 }

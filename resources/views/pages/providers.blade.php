@@ -5,7 +5,7 @@
 	    <div class="card-body">
 			<div class="row">
 				<div class="col-6 d-flex align-items-center">
-					<a href="{{ url('providers') }}" class="fw-semibold mb-1 h4"style="color: #5D87FF">Proveedores</a>
+					<a href="{{ url('providers') }}" class="fw-semibold mb-1 h4"style="color: #5D87FF">Clientes / Proveedores</a>
 				</div>
 
 				<div class="col-6 d-md-none d-flex justify-content-end">
@@ -41,6 +41,7 @@
                     <table class="table mt-3">
                         <thead>
                             <tr>
+                                <th>Tipo</th>
                                 <th>Documento</th>
                                 <th>Razon Social</th>
                                 <th>Telefono Principal</th>
@@ -51,7 +52,8 @@
                             @foreach($providers as $provider)
                                 @if($provider->id != 1)
                                     <tr>
-                                        <td scope="row">{{ $provider->document_type }} {{ $provider->document }}</td>
+                                        <td scope="row">{{ $provider->type == "provider" ? "Proveedor" : "Cliente" }}</td>
+                                        <td >{{ $provider->document_type }} {{ $provider->document }}</td>
                                         <td>{{ $provider->business_name }}</td>
                                         <td>{{ $provider->phone ?? "No registrado" }}</td>
                                         <td class="d-flex justify-content-center">
@@ -61,133 +63,14 @@
                                                 <span><i class="ti ti-report"></i></span>
                                             </button>
 
-                                            <div class="modal fade" id="modalDet{{ $provider->id }}" tabindex="-1" role="dialog" aria-labelledby="modelTitleId" aria-hidden="true">
-                                                <div class="modal-dialog" role="document">
-                                                    <div class="modal-content">
-                                                        <div class="modal-header">
-                                                            <h5 class="modal-title">Detalles Proveedor</h5>
-                                                        </div>
-                                                        <div class="modal-body">
-                                                            <div class="row mb-3">
-                                                                <div class="form-group">
-                                                                    <label for="inputTypeDocument" class="form-label">Tipo de Documento</label>
-                                                                    <span>{{ $provider->document_type }} {{ $provider->document }}</span>
-                                                                </div>
-                                                            </div>
-
-                                                            <div class="form-group mb-3">
-                                                                <label for="inputBusinessName" class="form-label">Razon Social</label>
-                                                                <span>{{ $provider->business_name }}</span>
-                                                            </div>
-
-                                                            <div class="form-group mb-3">
-                                                                <label for="inputEmail" class="form-label">Correo</label>
-                                                                <span>{{ $provider->mail ?? "No registrado" }}</span>
-                                                            </div>
-
-                                                            <div class="form-group mb-3">
-                                                                <label for="inputPhone" class="form-label">Telefono Principal</label>
-                                                                <span>{{ $provider->phone ?? "No registrado" }}</span>
-                                                            </div>
-
-                                                            <div class="form-group mb-3">
-                                                                <label for="inputPhoneSecondary" class="form-label">Telefono Segundario</label>
-                                                                <span>{{ $provider->phone_secondary ?? "No registrado" }}</span>
-                                                            </div>
-                                                            <div class="form-group mb-3">
-                                                                <label for="direction" class="form-label">Domicilio Fiscal</label>
-                                                                <span>{{ $provider->direction ?? "No registrado" }}</span>
-                                                            </div>
-                                                        </div>
-
-                                                        <div class="modal-footer">
-                                                            <button type="button" class="btn btn-dark" data-dismiss="modal">Cerrar</button>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
+                                            @include('pages.modals.providers.modalDetailProvider')
 
                                             <!-- ModalEdit -->
                                             <button type="button" class="btn btn-warning m-1" data-toggle="modal" data-target="#modalEdit{{ $provider->id }}" data-toggle="tooltip" title="Editar">
                                                 <span><i class="ti ti-edit"></i></span>
                                             </button>
 
-                                            <div class="modal fade" id="modalEdit{{ $provider->id }}" tabindex="-1" role="dialog" aria-labelledby="modelTitleId" aria-hidden="true">
-                                                <div class="modal-dialog" role="document">
-                                                    <div class="modal-content">
-                                                        <div class="modal-header">
-                                                            <h5 class="modal-title">Editar Proveedor</h5>
-                                                        </div>
-                                                        <form method="POST" action="{{  url("providers/$provider->id")  }}" autocomplete="off">
-                                                            {{ csrf_field() }}
-                                                            <input type="hidden" name="_method" value="PUT">
-
-                                                            <div class="modal-body" id="bodyModalEdit">
-                                                                <div class="row mb-3">
-                                                                    <div class="form-group col-12 col-md-4 mb-3 mb-md-0">
-                                                                        <label for="inputTypeDocument" class="form-label">Tipo de Documento</label>
-                                                                        <select name="type_document" class="form-control" required value="{{ old('type_document') }}">
-                                                                            @foreach($document_types as $type)
-                                                                                <option value="{{ $type->id }}" {{ $provider->id_document_type == $type->id ? 'selected' : '' }} >{{ $type->name }}</option>
-                                                                            @endforeach
-                                                                        </select>
-                                                                    </div>
-                                                                    <div class="form-group col-12 col-md-8">
-                                                                        <label for="inputDocument" class="form-label">Documento</label>
-                                                                        <input name="document" type="number" class="form-control" id="inputEditDocument" required minlenght="7" maxlenght="10" value="{{ $provider->document ? $provider->document : old('document') }}">
-                                                                        <p class="text-danger small d-none" id="documentEditMesssage">El documento debe de contar con una logitud de 7 a 10 caracteres de solo numeros</p>
-                                                                    </div>
-                                                                </div>
-
-                                                                <div class="row mb-3">
-                                                                    <div class="form-group col-12 col-md-6 mb-3 mb-md-0">
-                                                                        <label for="inputBusinessName" class="form-label">Razon Social</label>
-                                                                        <input name="business_name" type="text" class="form-control" id="inputEditBusinessName" required minlenght="1" maxlenght="50" value="{{ $provider->business_name ? $provider->business_name : old('business_name') }}">
-                                                                        <p class="text-danger small d-none" id="nameEditMessage">La razon social es requerida con minimo 6 caracteres de longitud</p>
-                                                                    </div>
-
-                                                                    <div class="form-group col-12 col-md-6">
-                                                                        <label for="inputEmail" class="form-label">Correo</label>
-                                                                        <input name="mail" type="email" class="form-control" id="inputEditEmail" minlength="10" value="{{ $provider->mail ? $provider->mail : old('mail') }}">
-                                                                        <small class="text-muted">Opcional</small>
-                                                                        <p class="text-danger small mb-0 d-none" id="emailEditMessage">El correo debe tener un formato valido, con un minimo de 5 caracteres de longitud antes del "@"</p>
-                                                                    </div>
-                                                                </div>
-
-                                                                <div class="row mb-3">
-                                                                    <div class="form-group col-12 col-md-6 mb-3 mb-md-0">
-                                                                        <label for="inputPhone" class="form-label">Telefono</label>
-                                                                        <input name="phone" type="number" class="form-control" id="inputEditPhone" minlenght="10" maxlenght="11" value="{{ $provider->phone ? $provider->phone : old('phone') }}">
-                                                                        <small class="text-muted">Opcional</small>
-                                                                        <p class="text-danger small mb-0 d-none" id="phoneEditMessage">El telefono principal solo puede contener numeros, con un a logitud entre 10 a 12 caracteres</p>
-                                                                    </div>
-
-                                                                    <div class="form-group col-12 col-md-6">
-                                                                        <label for="inputPhoneSecundary" class="form-label">Telefono Secundario</label>
-                                                                        <input name="phone_secondary" type="number" class="form-control" id="inputPhoneSecundary" minlenght="10" maxlenght="11" value="{{ $provider->phone_secondary ? $provider->phone_secondary : old('phone_secundary') }}">
-                                                                        <small class="text-muted">Opcional</small>
-                                                                        <p class="text-danger small mb-0 d-none" id="phoneSecondaryEditMessage">El telefono secundario solo puede contener numeros, con un a logitud entre 10 a 12 caracteres</p>
-                                                                    </div>
-                                                                </div>
-                                                                <div class="row mb-3">
-                                                                    <div class="row mb-3">
-                                                                        <div class="form-group col-12">
-                                                                            <label for="directionProvider" class="form-label">Domicilio Fiscal</label>
-                                                                            <input name="direction" type="text" class="form-control" id="editDirectionProvider" value="{{ $provider->direction ? $provider->direction : old('direction') }}" required>
-                                                                            <p class="text-danger small d-none" id="editDirectionProviderMessage">El Domicilio Fiscal de contener minimo 10 caracteres</p>
-                                                                        </div>
-                                                                    </div>
-                                                                </div>
-                                                            </div>
-
-                                                            <div class="modal-footer">
-                                                                <button type="button" class="btn btn-dark" data-dismiss="modal">Cerrar</button>
-                                                                <button type="submit" class="btn btn-warning">Editar</button>
-                                                            </div>
-                                                        </form>
-                                                    </div>
-                                                </div>
-                                            </div>
+                                           @include('pages.modals.providers.modalEditProvider')
 
                                             <!-- ModalDelete -->
                                             <!-- <button type="button" class="btn btn-danger m-1" data-toggle="modal" data-target="#modalDelete{{ $provider->id }}"data-toggle="tooltip" title="Eliminar">
@@ -226,14 +109,14 @@
                                                 <div class="modal-dialog" role="document">
                                                     <div class="modal-content">
                                                         <div class="modal-header">
-                                                            <h5 class="modal-title">{{ $provider->status == 1 ? 'Inhabilitar' : 'Habilitar' }}  proveedor</h5>
+                                                            <h5 class="modal-title">{{ $provider->status == 1 ? 'Inhabilitar' : 'Habilitar' }}  proveedor o cliente</h5>
                                                         </div>
-                                                        <form method="POST" action="{{  url("change/status/providers/$provider->id")  }}" autocomplete="off">
+                                                        <form method="POST" action="{{  url($provider->type == 'provider' ? "change/status/providers/$provider->id" : "change/status/customers/$provider->id")  }}" autocomplete="off">
                                                             {{ csrf_field() }}
                                                             <input type="hidden" name="_method" value="PUT">
 
                                                             <div class="modal-body">
-                                                                <h6>¿Esta seguro de {{ $provider->status == 1 ? 'Inhabilitar' : 'Habilitar' }} el proveedor <span class="font-weight-bold">{{ $provider->business_name }}</span>?</h6>
+                                                                <h6>¿Esta seguro de {{ $provider->status == 1 ? 'Inhabilitar' : 'Habilitar' }} el {{ $provider->type == 'provider' ? 'proveedor' : 'cliente' }} <span class="font-weight-bold">{{ $provider->business_name }}</span>?</h6>
                                                             </div>
 
                                                             <div class="modal-footer">
@@ -265,83 +148,9 @@
 	    </div>
 	</div>
 
-    <!-- ModalAgg -->
-    <div class="modal fade" id="modalAgg" tabindex="-1" role="dialog" aria-labelledby="modelTitleId" aria-hidden="true">
-        <div class="modal-dialog" role="document">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">Agregar Proveedor</h5>
-                </div>
-                <form method="POST" action="{{ url('providers') }}" autocomplete="off">
-                    {{ csrf_field() }}
-
-                    <div class="modal-body">
-                        <div class="row mb-3">
-                            <div class="form-group col-12 col-md-4 mb-3 mb-md-0">
-                                <label for="inputTypeDocument" class="form-label">Tipo de Documento</label>
-                                <select name="type_document" class="form-control" required value="{{ old('type_document') }}">
-                                    <option value="">- Seleccione -</option>
-                                    @foreach($document_types as $type)
-                                        <option value="{{ $type->id }}" {{ $type->id == old('type_document') ? 'selected' : '' }}>{{ $type->name }}</option>
-                                    @endforeach
-                                </select>
-                            </div>
-
-                            <div class="form-group col-12 col-md-8">
-                                <label for="inputDocument" class="form-label">Documento</label>
-                                <input name="document" type="number" class="form-control" id="inputAggDocument" required minlenght="7" maxlenght="10" value="{{ old('document') }}">
-								<p class="text-danger small d-none" id="documentAggMessage">El documento debe de contar con una logitud de 7 a 10 caracteres de solo numeros</p>
-                            </div>
-                        </div>
-
-                        <div class="row mb-3">
-                            <div class="form-group col-12 col-md-6 mb-3 mb-md-0">
-                                <label for="inputBusinessName" class="form-label">Razon Social</label>
-                                <input name="business_name" type="text" class="form-control" id="inputAggBusinessName" required minlenght="1" maxlenght="50" value="{{ old('business_name') }}">
-								<p class="text-danger small d-none" id="nameAggMessage">La razon social es requerida con minimo 6 caracteres de longitud</p>
-                            </div>
-
-                            <div class="form-group col-12 col-md-6">
-                                <label for="inputPhone" class="form-label">Telefono Principal</label>
-                                <input name="phone" type="number" class="form-control" id="inputAggPhone" minlenght="10" maxlenght="11" value="{{ old('phone') }}">
-                                <small class="text-muted">Opcional</small>
-                                <p class="text-danger small mb-0 d-none" id="phoneAggMessage">El telefono principal solo puede contener numeros, con un a logitud entre 10 a 12 caracteres</p>
-                            </div>
-                        </div>
-
-                        <div class="row mb-3">
-                            <div class="form-group col-12 col-md-6 mb-3 mb-md-0">
-                                <label for="inputEmail" class="form-label">Correo</label>
-                                <input name="mail" type="email" class="form-control" id="inputAggEmail" minlength="10" value="{{ old('mail') }}">
-                                <small class="text-muted">Opcional</small>
-                                <p class="text-danger small mb-0 d-none" id="emailAggMessage">El correo debe tener un formato valido, con un minimo de 5 caracteres de longitud antes del "@"</p>
-                            </div>
-
-                            <div class="form-group col-12 col-md-6">
-                                <label for="inputPhoneSecundary" class="form-label">Telefono Secundario</label>
-                                <input name="phone_secodary" type="number" class="form-control" id="inputAggPhoneSecundary" value="{{ old('phone_secundary') }}" minlenght="10" maxlenght="11">
-                                <small class="text-muted">Opcional</small>
-                                <p class="text-danger small mb-0 d-none" id="phoneSecondaryAggMessage">El telefono secundario solo puede contener numeros, con un a logitud entre 10 a 12 caracteres</p>
-                            </div>
-                        </div>
-                        <div class="row mb-3">
-                            <div class="form-group col-12">
-                                <label for="directionProvider" class="form-label">Domicilio Fiscal</label>
-                                <input name="direction" type="text" class="form-control" id="aggDirectionProvider" value="{{ old('direction') }}" required>
-                                <p class="text-danger small d-none" id="aggDirectionProviderMessage">El Domicilio Fiscal de contener minimo 10 caracteres</p>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-dark" data-dismiss="modal">Cerrar</button>
-                        <button type="submit" class="btn btn-primary">Agregar</button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
+    @include('pages.modals.providers.modalAddProvider')
 
 	@include('../layouts/message')
     <script src="{{ asset('js/validProviders.js') }}"></script>
+    <script src="{{ asset('js/validCustomers.js') }}"></script>
 @endsection

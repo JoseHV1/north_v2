@@ -324,5 +324,5 @@
     </div>
 
 	@include('../layouts/message')
-	<script src="{{ asset('js/validCustomers.js') }}"></script>
+	
 @endsection

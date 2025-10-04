@@ -39,6 +39,14 @@
                             <span class="hide-menu">Compras</span>
                         </a>
                     </li>
+                    <li class="sidebar-item">
+                        <a class="sidebar-link" href="{{ url('shopping/create') }}" aria-expanded="false">
+                            <span>
+                            <i class="ti ti-plus"></i>
+                            </span>
+                            <span class="hide-menu">Nueva Compra</span>
+                        </a>
+                    </li>
                 @endif
 
                 @if ($permission == 'Proveedores')
@@ -52,7 +60,7 @@
                     </li>
                 @endif
 
-                @if ($permission == 'Clientes')
+                {{-- @if ($permission == 'Clientes')
                     <li class="sidebar-item">
                         <a class="sidebar-link" href="{{ url('customers') }}" aria-expanded="false">
                         <span>
@@ -61,7 +69,7 @@
                         <span class="hide-menu">Clientes</span>
                         </a>
                     </li>
-                @endif
+                @endif --}}
 
                 @if ($permission == 'Productos')
                     <li class="sidebar-item">

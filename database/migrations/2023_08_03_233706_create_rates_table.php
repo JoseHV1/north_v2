@@ -18,6 +18,7 @@ class CreateRatesTable extends Migration
             $table->text('name');
             $table->double('value');
             $table->integer('status')->default(1);
+            $table->enum('tax', ['Aplicar subtotal', 'Aplicar a base imponible'])->nullable()->default('Aplicar subtotal');
             $table->timestamps();
         });
     }

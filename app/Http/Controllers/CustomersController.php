@@ -34,7 +34,8 @@ class CustomersController extends Controller
               'business_name' => $request->business_name,
               'email' => $request->email,
               'phone' => $request->phone,
-              'phone_secondary' => $request->phone_secondary
+              'phone_secondary' => $request->phone_secondary,
+              'retention_agent' => $request->retention_agent ?? 0,
           ]);
 
           DB::commit();
@@ -57,7 +58,8 @@ class CustomersController extends Controller
               'business_name' => $request->business_name,
               'email' => $request->email,
               'phone' => $request->phone,
-              'phone_secondary' => $request->phone_secondary
+              'phone_secondary' => $request->phone_secondary,
+              'retention_agent' => $request->retention_agent ?? 0,
           ]);
 
           DB::commit();

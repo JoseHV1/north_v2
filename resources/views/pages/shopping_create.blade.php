@@ -38,24 +38,37 @@
 					<div class="form-group col-12 col-md-6 mb-4 mb-lg-0">
 						<label for="selectCustomer" class="form-label">Proveedor</label>
 						<select name="provider" class="form-control" id="selectCustomer" onchange="evaluateValueSelects()" required>
-							<option value="0">- Seleccione -</option>
+							{{-- <option value="0">- Seleccione -</option> --}}
 							@foreach($providers as $provider)
-								<option value="{{ $provider->id }}">{{ $provider->business_name }}</option>
+								<option value="{{ $provider->id }}">{{ $provider->document_type }} {{ $provider->document }} &nbsp;&nbsp; {{ $provider->business_name }}</option>
 							@endforeach
 						</select>
 					</div>
-
 					<div class="form-group col-12 col-md-6 mb-4 mb-lg-0">
-						<label for="selectShapes" class="form-label">Forma de Pago</label>
-						<select name="shape_payment" class="form-control" id="selectShapes"  onchange="evaluateValueSelects()" required>
-							<option value="0">- Seleccione -</option>
-							@foreach($shapes_payments as $shape_payment)
-								<option value="{{ $shape_payment->id }}">{{ $shape_payment->name }}</option>
-							@endforeach
-						</select>
+						<label class="form-label">Forma de Pago</label>
+						<div class="dropdown">
+							<span class="form-control w-100 text-start" type="button" id="dropdownShapes" data-bs-toggle="dropdown" aria-expanded="false">
+								- Seleccione -
+							</span>
+							<ul class="dropdown-menu w-100" aria-labelledby="dropdownShapes" id="dropdownShapesMenu">
+								@foreach($shapes_payments as $shape_payment)
+									<li>
+										<label class="dropdown-item">
+											<input type="checkbox" class="form-check-input me-2 shape-payment-checkbox" name="shape_payment[]" onchange="evaluateValueSelects()" value="{{ $shape_payment->id }}">
+											{{ $shape_payment->name }}
+										</label>
+									</li>
+								@endforeach
+							</ul>
+						</div>
+						<small class="text-muted">Selecciona una o más formas de pago.</small>
+						<input type="hidden" name="shape_payment_input" id="shapePaymentHidden">
 					</div>
-
-					<div class="form-group col-12 col-md-4 d-none">
+				</div>
+				<div id="shapePaymentAmounts" class="d-none"></div>
+				
+				<div class="mt-4 mb-5 row d-none">
+					<div class="form-group col-12 col-md-4 ">
 						<label for="selectStates" class="form-label">Estado de Operacion</label>
 						<select name="states_operation" class="form-control" id="selectStates"  onchange="evaluateValueSelects()" required>
 							<option value="1">- Seleccione -</option>
@@ -65,8 +78,16 @@
 						</select>
 					</div>
 				</div>
-
 		    	<div class="mt-4 mb-5 row">
+					<div class="col-12 col-md-6 form-group">
+						<label class="form-label">Categoria</label>
+						<select class="form-control" id="selectCategory" disabled>
+							<option value="">- Seleccione -</option>
+							@foreach($categorys as $category)
+								<option value="{{ $category->id }}">{{ $category->name }}</option>
+							@endforeach
+						</select>
+					</div>
 		    		<div class="col-12 col-md-6 form-group mb-4 mb-lg-0">
 						<label class="form-label">Producto</label>
 			    		<div class="input-group">
@@ -77,15 +98,7 @@
 						</div>
 					</div>
 
-					<div class="col-12 col-md-5 form-group">
-						<label class="form-label">Categoria</label>
-						<select class="form-control" id="selectCategory" disabled>
-							<option value="">- Seleccione -</option>
-							@foreach($categorys as $category)
-								<option value="{{ $category->id }}">{{ $category->name }}</option>
-							@endforeach
-						</select>
-					</div>
+					
 				</div>
 
 				<div id="container_search_category" class="my-5 d-none">
@@ -126,8 +139,24 @@
 	</div>
 	@include('../layouts/message')
 
-  	<script>
+  	
+@endsection
+@section('scripts')
+	<script>
+		document.addEventListener('DOMContentLoaded', function () {
+			const element = document.getElementById('selectCustomer');
+			const choices = new Choices(element, {
+				searchEnabled: true,
+				itemSelectText: '',
+				placeholder: true,
+				placeholderValue: '- Seleccione un proveedor -',
+			});
+		});
+	</script>
+	<script>
         listProducts = @php echo json_encode($products) @endphp;
+		const dollarRate = @json($rates->firstWhere('name', 'BCV')->value ?? 0);
+		const shapesPayments = @json($shapes_payments);
   	</script>
   	<script src="{{ asset('js/shopping_create.js') }}"></script>
 @endsection

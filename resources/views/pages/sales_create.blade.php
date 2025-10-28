@@ -9,25 +9,37 @@
 				{{ csrf_field() }}
 
 		    	<div class="row mt-4 gap-4 gap-md-0">
-					<div class="form-group col-12 col-md-6">
+					<div class="form-group col-12 col-md-6 mb-4 mb-lg-0">
 						<label for="selectCustomer" class="form-label">Cliente</label>
 						<select name="customer" class="form-control" id="selectCustomer" onchange="evaluateValueSelects()" required>
-							<option value="0">- Seleccione -</option>
+							<option value="0"></option>
 							@foreach($customers as $customer)
-								<option value="{{ $customer->id }}">{{ $customer->business_name }}</option>
+								<option value="{{ $customer->id }}">{{ $customer->document_type }} {{ $customer->document }} &nbsp;&nbsp; {{ $customer->business_name }}</option>
 							@endforeach
 						</select>
 					</div>
-
-					<div class="form-group col-12 col-md-6">
-						<label for="selectShapes" class="form-label">Forma de Pago</label>
-						<select name="shape_payment" class="form-control" id="selectShapes"  onchange="evaluateValueSelects()" required>
-							<option value="0">- Seleccione -</option>
-							@foreach($shapes_payments as $shape_payment)
-								<option value="{{ $shape_payment->id }}">{{ $shape_payment->name }}</option>
-							@endforeach
-						</select>
+					<input id="total_sales" type="hidden" name="totalSales" value="0">
+					<div class="form-group col-12 col-md-6 mb-4 mb-lg-0">
+						<label class="form-label">Forma de Pago</label>
+						<div class="dropdown">
+							<span class="form-control w-100 text-start" type="button" id="dropdownShapes" data-bs-toggle="dropdown" aria-expanded="false">
+								- Seleccione -
+							</span>
+							<ul class="dropdown-menu w-100" aria-labelledby="dropdownShapes" id="dropdownShapesMenu">
+								@foreach($shapes_payments as $shape_payment)
+									<li>
+										<label class="dropdown-item">
+											<input type="checkbox" class="form-check-input me-2 shape-payment-checkbox" name="shape_payment[]" value="{{ $shape_payment->id }}" onchange="evaluateValueSelects()">
+											{{ $shape_payment->name }}
+										</label>
+									</li>
+								@endforeach
+							</ul>
+						</div>
+						<small class="text-muted">Selecciona una o más formas de pago.</small>
+						<input type="hidden" name="shape_payment_input" id="shapePaymentHidden">
 					</div>
+					<div id="shapePaymentAmounts" class="d-none"></div>
 
 					<div class="form-group col-12 col-md-4 d-none">
 						<label for="selectStates" class="form-label">Estado de Operacion</label>
@@ -41,6 +53,15 @@
 				</div>
 
 		    	<div class="my-4 row">
+					<div class="col-12 col-md-6 form-group mt-4 mt-md-0">
+						<label class="form-label">Categoria</label>
+						<select class="form-control" id="selectCategory" disabled>
+							<option value="">- Seleccione -</option>
+							@foreach($categorys as $category)
+								<option value="{{ $category->id }}">{{ $category->name }}</option>
+							@endforeach
+						</select>
+					</div>
 		    		<div class="col-12 col-md-6 form-group">
 						<label class="form-label">Producto</label>
 			    		<div class="input-group">
@@ -51,15 +72,7 @@
 						</div>
 					</div>
 
-					<div class="col-12 col-md-5 form-group mt-4 mt-md-0">
-						<label class="form-label">Categoria</label>
-						<select class="form-control" id="selectCategory" disabled>
-							<option value="">- Seleccione -</option>
-							@foreach($categorys as $category)
-								<option value="{{ $category->id }}">{{ $category->name }}</option>
-							@endforeach
-						</select>
-					</div>
+					
 				</div>
 
 				<div id="container_search_category" class="my-5 d-none">
@@ -117,6 +130,9 @@
 										<th>Total</th>
 										<td id="total" class="text-center"></td>
 									</tr>
+									<tr id="container_error" class="d-none">
+										<th colspan="2" class="text-danger text-sm">La suma de los montos no coincide con el total de la venta.</th>
+									</tr>
 								</tbody>
 							</table>
 						</div>
@@ -125,7 +141,7 @@
                         <input type="hidden" name="taxBase" id="taxBase">
 						<div class="d-flex justify-content-end align-items-center mt-4 gap-3">
 							<button type="button" class="btn btn-dark" onclick="cancelSale()">Cancelar</button>
-							<button type="submit" class="btn btn-primary">Guardar</button>
+							<button type="submit" class="btn btn-primary" id="btn_save">Guardar</button>
 						</div>
 					</div>
 				</div>
@@ -134,8 +150,24 @@
 	</div>
 	@include('../layouts/message')
 
-  	<script>
+  	
+@endsection
+@section('scripts')
+	<script>
+		document.addEventListener('DOMContentLoaded', function () {
+			const element = document.getElementById('selectCustomer');
+			const choices = new Choices(element, {
+				searchEnabled: true,
+				itemSelectText: '',
+				placeholder: true,
+				placeholderValue: '- Seleccione un cliente -',
+			});
+		});
+	</script>
+	<script>
         listProducts = @php echo json_encode($products) @endphp;
+		const dollarRate = @json($rates->firstWhere('name', 'BCV')->value ?? 0);
+		const shapesPayments = @json($shapes_payments); 
   	</script>
   	<script src="{{ asset('js/sales_create.js') }}"></script>
 @endsection

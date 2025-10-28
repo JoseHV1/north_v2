@@ -40,6 +40,7 @@ Route::middleware(['auth'])->group(function () {
         //Sales
         Route::middleware(['sales'])->group(function () {
             Route::resource('/sales', SalesController::class);
+            Route::get('report/sales', [BillsController::class, 'SalesReports']);
             Route::get('/bills/sales', [BillsController::class, 'sales']);
             Route::get('/bills/sales/{id}', [BillsController::class, 'detailsSales']);
         });

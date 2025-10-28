@@ -15,7 +15,7 @@ class RatesController extends Controller
     
     public function index()
     {
-        $rates = DB::table('rates')->where("name", "!=", "BCV")->orderBy('status', 'DESC')->orderBy('name', 'ASC')->paginate(10);
+        $rates = DB::table('rates')->orderBy('status', 'DESC')->orderBy('name', 'ASC')->paginate(10);
         return view('pages/rates')->with('rates', $rates);
     }
 

@@ -28,6 +28,14 @@
                         <span class="hide-menu">Ventas</span>
                         </a>
                     </li>
+                    <li class="sidebar-item">
+                        <a class="sidebar-link" href="{{ url('sales/create') }}" aria-expanded="false">
+                        <span>
+                            <i class="ti ti-plus"></i>
+                        </span>
+                        <span class="hide-menu">Nueva Venta</span>
+                        </a>
+                    </li>
                 @endif
 
                 @if ($permission == 'Compras')
@@ -53,9 +61,9 @@
                     <li class="sidebar-item">
                         <a class="sidebar-link" href="{{ url('providers') }}" aria-expanded="false">
                         <span>
-                            <i class="ti ti-truck-delivery"></i>
+                            <i class="ti ti-users"></i>
                         </span>
-                        <span class="hide-menu">Proveedores</span>
+                        <span class="hide-menu">Clientes / Proveedores</span>
                         </a>
                     </li>
                 @endif

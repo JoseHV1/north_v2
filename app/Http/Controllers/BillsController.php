@@ -40,9 +40,8 @@ class BillsController extends Controller
         $sales = DB::table('sales_invoices')
         ->join('customers', 'customers.id', '=', 'sales_invoices.id_customer')
         ->leftJoin('document_types', 'document_types.id', '=', 'customers.id_document_type')
-        ->join('shapes_payment', 'shapes_payment.id', '=', 'sales_invoices.id_shapes_payment')
         ->join('states_operation', 'states_operation.id', '=', 'sales_invoices.id_state_operation')
-        ->select('sales_invoices.*', 'document_types.name as document_type', 'customers.document', 'customers.business_name', 'shapes_payment.name as shape', 'states_operation.name as state')
+        ->select('sales_invoices.*', 'document_types.name as document_type', 'customers.document', 'customers.business_name', 'states_operation.name as state')
         ->orderBy('sales_invoices.status', 'ASC')
         ->orderBy('sales_invoices.created_at', 'DESC')
         ->paginate(10);
@@ -146,11 +145,16 @@ class BillsController extends Controller
                 $sales = DB::table('sales_invoices')
                 ->leftJoin("customers", "customers.id", "id_customer")
                 ->leftJoin('document_types', 'document_types.id', '=', 'customers.id_document_type')
-                ->join('shapes_payment', 'shapes_payment.id', '=', 'sales_invoices.id_shapes_payment')
                 ->join('states_operation', 'states_operation.id', '=', 'sales_invoices.id_state_operation')
-                ->select("sales_invoices.*", "customers.business_name", "customers.document", "document_types.name as document_type","shapes_payment.name as shape_payment", "states_operation.name as state_operation", "customers.phone")
+                ->select("sales_invoices.*", "customers.business_name", "customers.document", "document_types.name as document_type", "states_operation.name as state_operation", "customers.phone")
                 ->where("sales_invoices.id", $id)
                 ->first();
+
+                $sales->payments = DB::table('sales_invoices_shapes_payment')
+                    ->join('shapes_payment', 'shapes_payment.id', '=', 'sales_invoices_shapes_payment.id_shape_payment')
+                    ->where('id_sales_invoice', $id)
+                    ->select('shapes_payment.name as shape_payment', 'amount', 'price_BCV')
+                    ->get();
 
                 $products = DB::table("sales_invoice_details")->where("id_sales_invoice", $id)
                 ->join("products","products.id", "id_product")
@@ -161,18 +165,22 @@ class BillsController extends Controller
                 $data = [$sales, $products, $company, $id];
                 $numberBill = $sales->number_bill;
                 $module = 'Ventas';
+                
+                $pdf = PDF::loadView('pdfs/pdf_bills_sales', compact('data'));
             }else{
+                $company = DB::table("company")->first();
                 $shop = new ShoppingController();
-                $result = $shop->getBill($id);
-                $numberBill = $result[0]->invoice_number;
+                $shopping = $shop->getBill($id);
+                $numberBill = $shopping[0]->invoice_number;
+                $data = [$shopping[0], $shopping[1], $company, $id];
                 $module = 'Compras';
+                $pdf = PDF::loadView('pdfs/pdf_bills_shopping', compact('data'));
             }
 
             $extendLogsController = new LogsController();
             $extendLogsController->insertLogOperations($module, "Generacion del PDF de la factura N $numberBill");
 
-            $pdf = PDF::loadView('pdfs/pdf_bills_sales', compact('data'));
-            return $pdf->download("factura_venta_$id.pdf");
+            return $pdf->download("factura_".$module."_".$id.".pdf");
         } catch (\Throwable $th) {
             dd($th);
         }
@@ -208,11 +216,16 @@ class BillsController extends Controller
         $sales = DB::table('sales_invoices')
         ->join("customers", "customers.id", "id_customer")
         ->leftJoin('document_types', 'document_types.id', '=', 'customers.id_document_type')
-        ->join('shapes_payment', 'shapes_payment.id', '=', 'sales_invoices.id_shapes_payment')
         ->join('states_operation', 'states_operation.id', '=', 'sales_invoices.id_state_operation')
-        ->select("sales_invoices.*", "customers.business_name", "customers.document", "document_types.name as document_type","shapes_payment.name as shape_payment", "states_operation.name as state_operation", "customers.phone")
+        ->select("sales_invoices.*", "customers.business_name", "customers.document", "document_types.name as document_type", "states_operation.name as state_operation", "customers.phone")
         ->where("sales_invoices.id", $id)
         ->first();
+
+        $sales->payments = DB::table('sales_invoices_shapes_payment')
+        ->join('shapes_payment', 'shapes_payment.id', '=', 'sales_invoices_shapes_payment.id_shape_payment')
+        ->where('id_sales_invoice', $id)
+        ->select('shapes_payment.name as shape_payment', 'amount', 'price_BCV')
+        ->get();
 
         $products = DB::table("sales_invoice_details")->where("id_sales_invoice", $id)
         ->join("products","products.id", "id_product")
@@ -260,6 +273,38 @@ class BillsController extends Controller
         ->paginate(10);
 
         return $sales;
+    }
+
+    public function SalesReports(){
+        // Obtiene las ventas del día y las agrupa por método de pago
+        $raw = DB::table('sales_invoices')
+        ->join('customers', 'customers.id', '=', 'sales_invoices.id_customer')
+        ->leftJoin('document_types', 'document_types.id', '=', 'customers.id_document_type')
+        ->join('states_operation', 'states_operation.id', '=', 'sales_invoices.id_state_operation')
+        ->join('sales_invoices_shapes_payment as sisp', 'sisp.id_sales_invoice', '=', 'sales_invoices.id') 
+        ->join('shapes_payment', 'shapes_payment.id', '=', 'sisp.id_shape_payment') 
+        ->whereDate('sales_invoices.created_at', '=', now()->toDateString())
+        ->select(
+            'sales_invoices.*', 
+            'document_types.name as document_type', 
+            'customers.document', 
+            'customers.business_name', 
+            'states_operation.name as state',
+            'sisp.amount as amount_pay',
+            'shapes_payment.name as payment_shape'
+        )
+        ->orderBy('sales_invoices.status', 'ASC')
+        ->orderBy('sales_invoices.created_at', 'DESC')
+        ->get();
+
+        $salesByShape = $raw->groupBy('payment_shape');
+        
+        $customers = DB::table('customers')->leftJoin('document_types', 'document_types.id', '=', 'customers.id_document_type')->where('status', 1)->orderBy('customers.business_name', 'ASC')->select('customers.id', 'customers.business_name')->get();
+
+        $extendLogsController = new LogsController();
+        $extendLogsController->insertLogOperations('Ventas', 'Visualizacion de los reportes de ventas');
+           
+        return view('pages/reports_sales')->with('salesByShape', $salesByShape)->with('customers', $customers);
     }
 
     public function searchPurchases($params){

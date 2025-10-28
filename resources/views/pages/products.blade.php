@@ -40,6 +40,7 @@
 							<tr>
 								<th>Concepto o descripcion</th>
 								<th class="text-center">Precio Venta</th>
+								<th class="text-center">Precio Venta BS</th>
 								<th class="text-center">Existencia</th>
 								<th class="text-center">Inventario</th>
 								<th></th>
@@ -49,7 +50,8 @@
 							@foreach($products as $product)
 								<tr>
 									<td scope="row">{{ $product->description }}</td>
-									<td class="text-center">{{ floor($product->price * pow(10, 2)) / pow(10, 2) }} </td>
+									<td class="text-center">{{ floor($product->price * pow(10, 2)) / pow(10, 2) }} $ </td>
+									<td class="text-center">{{ floor($product->price * $bcv) }} BS</td>
 									<td class="text-center">{{ $product->existence != null ? $product->existence : 0 }}</td>
 									<td class="text-center">
 										@if($product->existence <= $product->existence_minime)

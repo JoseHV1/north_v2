@@ -93,7 +93,8 @@
                                     {{ floor(($shop->total) * pow(10, 2)) / pow(10, 2) }} Bs
                                 </td>
                                 <td>
-                                <a href="{{ url("bills/shopping/$shop->id") }}" class="btn btn-sm btn-success" data-toggle="tooltip" title="Detalles" target="_blank">
+                                    
+                                    <a href="{{ url("bills/shopping/$shop->id") }}" class="btn btn-sm btn-success" data-toggle="tooltip" title="Detalles" target="_blank">
                                         <span><i class="ti ti-eye"></i></span>
                                     </a>
 
@@ -125,6 +126,11 @@
                                                 </div>
                                             </div>
                                         </div>
+
+                                        <a href="{{ url("bills/pdf/shop/$shop->id") }}" class="btn btn-sm btn-info"  data-toggle="tooltip" title="Generar PDF">
+                                            <span><i class="ti ti-file-export"></i></span>
+                                        </a>
+
                                     @endif
 
                                     {{-- @if($shop->state == 'Pendiente' && $shop->status == 0 && auth()->user()->id_rol == 1)

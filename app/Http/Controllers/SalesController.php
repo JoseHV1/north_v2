@@ -15,11 +15,16 @@ class SalesController extends Controller
         $sales = DB::table('sales_invoices')
         ->join('customers', 'customers.id', '=', 'sales_invoices.id_customer')
         ->leftJoin('document_types', 'document_types.id', '=', 'customers.id_document_type')
-        ->join('shapes_payment', 'shapes_payment.id', '=', 'sales_invoices.id_shapes_payment')
-        ->join('states_operation', 'states_operation.id', '=', 'sales_invoices.id_state_operation')
-        ->select('sales_invoices.*', 'document_types.name as document_type', 'customers.document', 'customers.business_name', 'shapes_payment.name as shape', 'states_operation.name as state')
+        ->select('sales_invoices.*', 'document_types.name as document_type', 'customers.document', 'customers.business_name', 'states_operation.name as state')
         ->orderBy('sales_invoices.created_at', 'DESC')
         ->paginate(10);
+        dd($sales);
+
+        // $sales->payments = DB::table('purchases_invoice_shapes_payment')
+        // ->join('shapes_payment', 'shapes_payment.id', '=', 'purchases_invoice_shapes_payment.id_shape_payment')
+        // ->where('id_purchase_invoice', $id)
+        // ->select('shapes_payment.name as shape_payment', 'amount', 'price_BCV')
+        // ->get();
 
         return view('pages/sales')->with('sales', $sales);
     }
@@ -29,7 +34,7 @@ class SalesController extends Controller
         ->leftJoin('document_types', 'document_types.id', '=', 'customers.id_document_type')
         ->where('status', 1)
         ->orderBy('customers.business_name', 'ASC')
-        ->select('customers.id', 'customers.business_name')
+        ->select('customers.id', 'customers.business_name','customers.document', 'document_types.name as document_type')
         ->get();
 
         $shapes_payments = DB::table('shapes_payment')
@@ -76,6 +81,31 @@ class SalesController extends Controller
 
     public function store(SalesRequest $request)
     {
+        
+
+        $totalBs = $request->input('totalSale');
+        $amounts = $request->input('amounts', []);
+        $rate = DB::table('rates')->where('name', 'BCV')->first()->value ?? 0;
+
+        if(count($amounts) > 1){
+
+            $sum = 0;
+            foreach ($amounts as $id => $amount) {
+                $shape = DB::table('shapes_payment')->where('id', $id)->first();
+
+                if (str_contains(strtolower($shape->name), 'divisas') || str_contains(strtolower($shape->name), 'dolares') || str_contains(strtolower($shape->name), 'usd')) {
+                    $sum += $amount * $rate;
+                } else {
+                    $sum += $amount;
+                }
+            }
+            
+            if (abs($sum - $totalBs) > 0.01) {
+                return back()->withErrors(['totalShopping' => 'La suma de los montos no coincide con el total.']);
+            }
+        }
+       
+
         foreach ($request->product_id as $key => $id) {
             $productExistence = DB::table('products')->where('id', $id)->value('existence');
             if($request->quantity[$key] > $productExistence) return back()->withErrors(['error' => "Error: Alguna de las cantidades de los productos de la venta supera su existencia"]);
@@ -88,16 +118,24 @@ class SalesController extends Controller
 
             $id_transaction = DB::table('sales_invoices')->insertGetId([
                 'id_customer' => $request->customer,
-                'id_shapes_payment' => $request->shape_payment,
                 'tax_base' => $request->taxBase,
                 'total' => $request->totalSale,
                 'iva' => $rates[0]->value,
-                'igtf' => $request->shape_payment == 2 ? $rates[2]->value : 0,
-                'bcv' => $request->shape_payment == 2 ? $rates[3]->value : 0,
+                'igtf' => in_array($amounts, array_keys($request->input('amounts', []))) == 2 ? $rates[2]->value : 0,
+                'bcv' => in_array($amounts, array_keys($request->input('amounts', []))) ? $rates[3]->value : 0,
                 'ganance' => $rates[1]->value,
                 'id_state_operation' => $request->states_operation,
                 'id_header' => $headerCompany
             ]);
+
+            foreach ($amounts as $id => $amount) {
+                DB::table('sales_invoices_shapes_payment')->insert([
+                    'id_sales_invoice' => $id_transaction,
+                    'id_shape_payment' => $id,
+                    'amount' => $amount,
+                    'price_BCV' => $rate,
+                ]);
+            }
 
             foreach ($request->product_id as $key => $id) {
                 $product = DB::table('products')

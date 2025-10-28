@@ -99,7 +99,7 @@
                                 </span>
                             </th>
                             <th>Telefono: <span class="fw-normal">{{ $sales->phone }}</span></th>
-                            <th>Forma de Pago: <span class="fw-normal">{{ $sales->shape_payment }}</span></th>
+                            <th>Forma de Pago: <span class="fw-normal">{{ $sales->payments->pluck('shape_payment')->join(', ') }}</span></th>
                         </tr>
                     </tbody>
                 </table>

@@ -11,6 +11,10 @@
   <link rel="stylesheet" href="{{ asset('css/desing.css') }}"/>
   <link rel="stylesheet" href="{{ asset('import/alertifyjs/css/alertify.css') }}">
   <link rel="stylesheet" href="{{ asset('import/bootstrap-tagsinput/dist/bootstrap-tagsinput.css') }}">
+  <!-- CSS de Choices.js -->
+  <link rel="stylesheet" href="{{ asset('libs/choices/choices.min.css') }}">
+  <!-- JS de Choices.js -->
+  <script src="{{ asset('libs/choices/choices.min.js') }}"></script>
   <script src="{{ asset('import/alertifyjs/alertify.js') }}"></script>
   <script src="{{ asset('import/jquery-validation/lib/jquery.js') }}"></script>
   <script src="{{ asset('import/jquery-validation/dist/jquery.validate.js') }}"></script>
@@ -58,7 +62,7 @@
     <script src="{{ asset('import/js/bootstrap.min.js') }}"></script>
     <script src="{{ asset('js/sidebarmenu.js') }}"></script>
     <script src="{{ asset('js/app.min.js') }}"></script>
-    <script src="{{ asset('js/alerts.js') }}"></script>
+    {{-- <script src="{{ asset('js/alerts.js') }}"></script> --}}
     <script src="{{ asset('js/validate_form.js') }}"></script>
     <script src="{{ asset('libs/apexcharts/dist/apexcharts.min.js') }}"></script>
     <script src="{{ asset('libs/simplebar/dist/simplebar.js') }}"></script>
@@ -68,6 +72,7 @@
     @auth
         <script src="{{ asset('js/sessions.js') }}"></script>
     @endauth
+    @yield('scripts')
 </body>
 
 </html>

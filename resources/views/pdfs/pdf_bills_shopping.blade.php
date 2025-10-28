@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Factura de Venta N°{{ $data[0]->number_bill }}</title>
+    <title>Factura de Compra N°{{ $data[0]->invoice_number }}</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -113,18 +113,11 @@
     <div class="invoice-box">
         <div class="header">
             <div class="invoice-details">
-                <h1 style="color: #333; font-size: 16pt;">FACTURA DE VENTA</h1>
-                <div>**N° Factura:** {{ $data[0]->number_bill }}</div>
+                <h1 style="color: #333; font-size: 16pt;">FACTURA DE COMPRA</h1>
+                <div>**N° Factura:** {{ $data[0]->invoice_number }}</div>
                 <div>**N° Control:** {{ $data[0]->id }}</div>
                 <div>**Fecha de Venta:** {{ \Carbon\Carbon::parse($data[0]->created_at)->format("d/m/Y") }}</div>
                 </div>
-            <div class="company-info">
-                <h3>**{{ $data[2]->name }}**</h3>
-                <div>RIF: **{{ $data[2]->rif }}**</div>
-                <div>Teléfono: {{ $data[2]->phone }}</div>
-                <div>Dirección: {{ $data[2]->direction }}</div>
-                <div>Email: {{ $data[2]->email }}</div>
-            </div>
         </div>
 
         <hr style="border: 0; border-top: 1px solid #ccc;">
@@ -133,7 +126,7 @@
             <table>
                 <thead>
                     <tr>
-                        <th colspan="3" style="background-color: #ccc; text-align: center;">DATOS DEL CLIENTE</th>
+                        <th colspan="3" style="background-color: #ccc; text-align: center;">DATOS DEL PROVEEDOR</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -177,12 +170,11 @@
             </tbody>
         </table>
 
-        <div class="totals-box">
+        {{-- <div class="totals-box">
             <div>
                 @if($data[0]->igtf > 0)
                     <div>**Tasa BCV:** {{ number_format($data[0]->bcv, 4) }}</div>
                 @endif
-                <p style="margin-top: 20px;">*Gracias por su compra.*</p>
             </div>
             <div class="calculations">
                 <div class="calculation-row">
@@ -216,7 +208,7 @@
                     <div class="value">**{{ number_format($data[0]->total, 2) }} Bs**</div>
                 </div>
             </div>
-        </div>
+        </div> --}}
     </div>
 </body>
 </html>

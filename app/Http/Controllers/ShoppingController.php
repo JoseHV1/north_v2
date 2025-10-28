@@ -26,7 +26,7 @@ class ShoppingController extends Controller
         ->leftJoin('document_types', 'document_types.id', '=', 'providers.id_document_type')
         ->where('status', 1)
         ->orderBy('providers.business_name', 'ASC')
-        ->select('providers.id', 'providers.business_name')
+        ->select('providers.id', 'providers.business_name', 'providers.document', 'document_types.name as document_type')
         ->get();
 
         $shapes_payments = DB::table('shapes_payment')
@@ -68,19 +68,49 @@ class ShoppingController extends Controller
 
     public function store(ShoppingRequest $request)
     {
+        $totalBs = $request->input('totalShopping');
+        $amounts = $request->input('amounts', []);
+        $rate = DB::table('rates')->where('name', 'BCV')->first()->value ?? 0;
+
+        if(count($amounts) > 1){
+
+            $sum = 0;
+            foreach ($amounts as $id => $amount) {
+                $shape = DB::table('shapes_payment')->where('id', $id)->first();
+
+                if (str_contains(strtolower($shape->name), 'divisas') || str_contains(strtolower($shape->name), 'dolares') || str_contains(strtolower($shape->name), 'usd')) {
+                    $sum += $amount * $rate;
+                } else {
+                    $sum += $amount;
+                }
+            }
+           
+            if (abs($sum - $totalBs) > 0.01) {
+                return back()->withErrors(['totalShopping' => 'La suma de los montos no coincide con el total.']);
+            }
+        }
+        
         DB::beginTransaction();
         try {
 
             $id_transaction = DB::table('purchases_invoices')->insertGetId([
                 'id_provider' => $request->provider,
                 'id_state_operation' => $request->states_operation,
-                'id_shape_payment' => $request->shape_payment,
                 'total' => $request->totalShopping,
                 'invoice_number' => $request->invoiceNumber,
                 'control_number' => $request->controlNumber,
                 'date' => $request->date,
                 'created_at' => $request->date
             ]);
+
+            foreach ($amounts as $id => $amount) {
+                DB::table('purchases_invoice_shapes_payment')->insert([
+                    'id_purchase_invoice' => $id_transaction,
+                    'id_shape_payment' => $id,
+                    'amount' => $amount,
+                    'price_BCV' => $rate,
+                ]);
+            }
 
             foreach ($request->product_id as $key => $id) {
 
@@ -150,13 +180,26 @@ class ShoppingController extends Controller
     public function getBill($id)
     {
         $shopping = DB::table('purchases_invoices')
-        ->join("providers", "providers.id", "id_provider")
+        ->join('providers', 'providers.id', '=', 'purchases_invoices.id_provider')
         ->leftJoin('document_types', 'document_types.id', '=', 'providers.id_document_type')
-        ->join('shapes_payment', 'shapes_payment.id', '=', 'purchases_invoices.id_shape_payment')
         ->join('states_operation', 'states_operation.id', '=', 'purchases_invoices.id_state_operation')
-        ->select("purchases_invoices.*", "providers.business_name", "providers.document", "document_types.name as document_type","shapes_payment.name as shape_payment", "states_operation.name as state_operation","providers.direction")
-        ->where("purchases_invoices.id", $id)
+        ->where('purchases_invoices.id', $id)
+        ->select(
+            'purchases_invoices.*',
+            'providers.business_name',
+            'providers.document',
+            'providers.phone',
+            'document_types.name as document_type',
+            'states_operation.name as state_operation',
+            'providers.direction'
+        )
         ->first();
+
+        $shopping->payments = DB::table('purchases_invoice_shapes_payment')
+        ->join('shapes_payment', 'shapes_payment.id', '=', 'purchases_invoice_shapes_payment.id_shape_payment')
+        ->where('id_purchase_invoice', $id)
+        ->select('shapes_payment.name as shape_payment', 'amount', 'price_BCV')
+        ->get();
 
         $products = DB::table("purchases_invoice_details")->where("id_purchase_invoice", $id)
         ->join("products","products.id", "id_product")

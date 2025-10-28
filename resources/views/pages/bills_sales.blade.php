@@ -10,6 +10,9 @@
 
                 <div class="col-6">
 					<div class="d-flex justify-content-end">
+                        <a role="button" class="btn btn-primary m-1" href="{{ url('report/sales') }}" data-toggle="tooltip" title="Agregar">
+							<span><i class="ti ti-report"></i></span> Reporte Diario
+						</a>
 						<a role="button" class="btn btn-primary m-1" href="{{ url('sales/create') }}" data-toggle="tooltip" title="Agregar">
 							<span><i class="ti ti-plus"></i></span>
 						</a>

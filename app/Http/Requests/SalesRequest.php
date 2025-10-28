@@ -16,7 +16,8 @@ class SalesRequest extends FormRequest
     {
         return [
             'customer' => 'required|exists:customers,id',
-            'shape_payment' => 'required|exists:shapes_payment,id',
+            'shape_payment' => 'required|array',
+            'shape_payment.*' => 'exists:shapes_payment,id',
             'states_operation' => 'required|exists:states_operation,id',
             'quantity' => 'required|array',
             'quantity.*' => 'numeric|min:1',
@@ -33,7 +34,8 @@ class SalesRequest extends FormRequest
             'customer.required'=> 'El cliente es requerido',
             'customer.exists'=> 'El cliente no existe en la base de datos',
             'shape_payment.required'=> 'La forma de pago es requerida',
-            'shape_payment.exists'=> 'La forma de pago no existe en la base de datos',
+            'shape_payment.array'=> 'Por favor selecciona un metodo de pago valido',
+            'shape_payment.*'=> 'El metodo de pago seleccionado no existe',
             'states_operation.required'=> 'El estado de operacion es requerido',
             'states_operation.exists'=> 'El estado de operacion no existe en la base de datos',
             'product_id' => 'Para poder realizar su operacion agregue productos a su venta',

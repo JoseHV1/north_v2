@@ -30,9 +30,11 @@ class ProductsController extends Controller
 
         $categories = DB::table('categorys')->where('status', 1)->orderBy('name', 'ASC')->select('id', 'name')->get();
 
-        $ganance = DB::table('rates')->where('name', "like", '%anancia%')->where('status', 1)->value('value');
+        $rates = DB::table('rates')->where('status', 1)->get();
+        $ganance = $rates->firstWhere('name', "like", '%anancia%')->value ?? 0;
+        $bcv = $rates->firstWhere('name', 'BCV')->value ?? 0;
 
-        return view('pages/products')->with('products', $products)->with('categories', $categories)->with('ganance', $ganance);
+        return view('pages/products')->with('products', $products)->with('categories', $categories)->with('ganance', $ganance)->with('bcv', $bcv);
     }
 
     public function store(ProductsRequest $request)

@@ -47,7 +47,7 @@
                             </th>
                             <th>Forma de Pago:
                                 <span class="fw-normal">
-                                    {{ $shopping->shape_payment }}
+                                    {{ $shopping->payments->pluck('shape_payment')->join(', ') }} 
                                 </span>
                             </th>
                         </tr>
